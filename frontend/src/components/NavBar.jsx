@@ -18,6 +18,7 @@ export default function NavBar({ role = 'Doctor' }) {
 
   const logout = () => {
     localStorage.removeItem('mw_token')
+    localStorage.removeItem('mw_refresh_token')
     window.location.href = '/'
   }
 
@@ -41,14 +42,14 @@ export default function NavBar({ role = 'Doctor' }) {
             {/* <div className="h-9 w-9 rounded-2xl bg-gradient-to-br from-emerald-400 to-sky-500 flex items-center justify-center text-white font-bold">
               MW
             </div> */}
-           <div className="flex flex-col items-start">
-  <div className="text-sm font-semibold text-slate-900">
-    MediWatch
-  </div>
-  <div className="text-[11px] text-slate-500">
-    Intelligent Remote Monitoring
-  </div>
-</div>
+            <div className="flex flex-col items-start">
+              <div className="text-sm font-semibold text-slate-900">
+                MediWatch
+              </div>
+              <div className="text-[11px] text-slate-500">
+                Intelligent Remote Monitoring
+              </div>
+            </div>
 
           </div>
 
@@ -98,18 +99,18 @@ export default function NavBar({ role = 'Doctor' }) {
       {/* =======================
           SCROLL NAV BAR
       ======================= */}
-    
 
 
-        <div
-  className="sticky z-40"
-  style={{
-    top: 64,
-    background: '#f8f5ef',
-  }}
->
 
-      
+      <div
+        className="sticky z-40"
+        style={{
+          top: 64,
+          background: '#f8f5ef',
+        }}
+      >
+
+
         <div className="max-w-6xl mx-auto px-4 py-2 flex justify-center gap-4">
           {[
             { id: 'live-trends', label: 'Live Trends' },
