@@ -92,7 +92,21 @@ export default function PatientDashboard() {
 
     const updateLocation = () => {
       navigator.geolocation.getCurrentPosition(pos => {
-        const { latitude, longitude } = pos.coords
+        const { latitude, longitude, accuracy } = pos.coords
+
+        // Reject wildly inaccurate readings (IP-based fallback like Seoul/China)
+        // India bounding box: lat 6-37°N, lng 68-97°E
+        const isInIndia = latitude >= 6 && latitude <= 37 && longitude >= 68 && longitude <= 97
+
+        // Also reject if accuracy is very poor (> 5km = IP-based location)
+        const isAccurate = accuracy < 5000
+
+        if (!isInIndia || !isAccurate) {
+          console.warn(`Rejected spurious GPS: lat=${latitude}, lng=${longitude}, accuracy=${accuracy}m`)
+          return
+        }
+
+        console.log(`✅ Location updated: lat=${latitude.toFixed(4)}, lng=${longitude.toFixed(4)}, accuracy=${Math.round(accuracy)}m`)
         setPatient(prev => ({ ...prev, lat: latitude, lng: longitude }))
 
         axios.post(
@@ -102,8 +116,8 @@ export default function PatientDashboard() {
         ).catch(err => console.error("Failed to update location", err))
       }, err => console.error("GPS error", err), {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 30000
+        timeout: 15000,
+        maximumAge: 0   // Always request fresh GPS, never use cached/IP fallback
       })
     }
 
