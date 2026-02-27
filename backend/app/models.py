@@ -11,17 +11,17 @@ import json
 # ===================== USER =====================
 class User(Base):
     __tablename__ = "users"
-    __table_args__ = {"schema": "public"}
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
-    full_name = Column(String, nullable=True)
+    full_name = Column(String)
     role = Column(String, default="patient")  # doctor / patient
     hashed_password = Column(String, nullable=False)
-    email = Column(String, nullable=True)
+    email = Column(String)
     theme = Column(String, default="dark")
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Relationships
     patient = relationship(
         "Patient",
         uselist=False,
@@ -35,21 +35,24 @@ class User(Base):
         foreign_keys="Patient.assigned_doctor_id",
     )
 
+    audit_logs = relationship("AuditLog", back_populates="user")
+
 
 # ===================== PATIENT =====================
 class Patient(Base):
     __tablename__ = "patients"
-    __table_args__ = {"schema": "public"}
 
     id = Column(Integer, primary_key=True, index=True)
+
     user_id = Column(Integer, ForeignKey("users.id"), unique=True)
     assigned_doctor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
     emergency_contacts = Column(Text, default="[]", nullable=False)
 
-    # ✅ LIVE LOCATION
-    lat = Column(Float, nullable=True)
-    lng = Column(Float, nullable=True)
+    lat = Column(Float)
+    lng = Column(Float)
 
+    # Relationships
     user = relationship(
         "User",
         back_populates="patient",
@@ -61,6 +64,10 @@ class Patient(Base):
         back_populates="patients_assigned",
         foreign_keys=[assigned_doctor_id],
     )
+
+    readings = relationship("Reading", back_populates="patient")
+    alerts = relationship("Alert", back_populates="patient")
+    doctor_notes = relationship("DoctorNote", back_populates="patient")
 
     def get_contacts(self):
         try:
@@ -75,11 +82,11 @@ class Patient(Base):
 # ===================== READING =====================
 class Reading(Base):
     __tablename__ = "readings"
-    __table_args__ = {"schema": "public"}
 
     id = Column(Integer, primary_key=True, index=True)
-    patient_id = Column(Integer)
+    patient_id = Column(Integer, ForeignKey("patients.id"))
     timestamp = Column(DateTime, default=datetime.utcnow)
+
     heart_rate = Column(Float)
     spo2 = Column(Float)
     bp_sys = Column(Float)
@@ -87,44 +94,52 @@ class Reading(Base):
     temperature = Column(Float)
     hash = Column(String(128))
 
+    patient = relationship("Patient", back_populates="readings")
+
 
 # ===================== ALERT =====================
 class Alert(Base):
     __tablename__ = "alerts"
-    __table_args__ = {"schema": "public"}
 
     id = Column(Integer, primary_key=True, index=True)
-    patient_id = Column(Integer)
+    patient_id = Column(Integer, ForeignKey("patients.id"))
     timestamp = Column(DateTime, default=datetime.utcnow)
+
     severity = Column(String)
     message = Column(Text)
 
     resolved = Column(Boolean, default=False)
     acknowledged = Column(Boolean, default=False)
-    acknowledged_by = Column(Integer, nullable=True)
-    acknowledged_at = Column(DateTime, nullable=True)
+    acknowledged_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    acknowledged_at = Column(DateTime)
     escalated = Column(Boolean, default=False)
+
+    patient = relationship("Patient", back_populates="alerts")
 
 
 # ===================== DOCTOR NOTES =====================
 class DoctorNote(Base):
     __tablename__ = "doctor_notes"
-    __table_args__ = {"schema": "public"}
 
     id = Column(Integer, primary_key=True)
-    patient_id = Column(Integer)
-    doctor_id = Column(Integer)
+    patient_id = Column(Integer, ForeignKey("patients.id"))
+    doctor_id = Column(Integer, ForeignKey("users.id"))
+
     note = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    patient = relationship("Patient", back_populates="doctor_notes")
 
 
 # ===================== AUDIT LOG =====================
 class AuditLog(Base):
     __tablename__ = "audit_logs"
-    __table_args__ = {"schema": "public"}
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer)
+    user_id = Column(Integer, ForeignKey("users.id"))
+
     action = Column(String)
     details = Column(Text)
     timestamp = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="audit_logs")

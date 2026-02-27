@@ -631,7 +631,7 @@ def register_user(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
 def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = get_user_by_username(db, form.username)
     if not user or not verify_password(form.password, user.hashed_password):
-        raise HTTPException(401, "Invalid credentials")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = create_access_token({
         "sub": user.username,
@@ -706,71 +706,68 @@ def reset(payload: dict, db: Session = Depends(get_db)):
 #     db.close()
 
 async def escalate_if_not_ack(alert_id: int):
-    print("⏳ Escalation timer started for alert", alert_id)
+    print(f"⏳ [Escalation] Timer started for alert {alert_id}")
 
-    await asyncio.sleep(180)  # ⏱ 3 minutes
+    await asyncio.sleep(30)  # ⏱ Reduced to 30s for faster debugging (was 180)
 
     db = SessionLocal()
-    alert = db.query(models.Alert).get(alert_id)
+    try:
+        alert = db.query(models.Alert).get(alert_id)
 
-    if not alert:
+        if not alert:
+            print(f"❌ [Escalation] Alert {alert_id} not found in DB")
+            return
+
+        print(f"🔍 [Escalation] Checking alert {alert_id}: ack={alert.acknowledged}, esc={alert.escalated}")
+
+        if alert.acknowledged:
+            print(f"✅ [Escalation] Alert {alert_id} already acknowledged, stopping")
+            return
+
+        if alert.escalated:
+            print(f"⚠️ [Escalation] Alert {alert_id} already escalated, stopping")
+            return
+
+        patient = db.query(models.Patient).get(alert.patient_id)
+        if not patient:
+            print(f"❌ [Escalation] Patient for alert {alert_id} not found")
+            return
+
+        user = db.query(models.User).get(patient.user_id)
+        if not user:
+            print(f"❌ [Escalation] User for alert {alert_id} not found")
+            return
+
+        contacts = patient.get_contacts()
+        print(f"🚨 [Escalation] ESCALATING alert {alert_id}. Contacts: {contacts}")
+
+        if not contacts:
+            print(f"⚠️ [Escalation] No contacts found for patient {patient.id}")
+        else:
+            # 📞 AUTO CALL FAMILY
+            call_family(contacts, user.full_name or user.username)
+
+        # 📧 SEND LOCATION EMAIL
+        location_url = None
+        if patient.lat and patient.lng:
+            location_url = f"https://www.google.com/maps?q={patient.lat},{patient.lng}"
+
+        if user.email and location_url:
+            send_email(
+                user.email,
+                "🚨 MediWatch Emergency – Patient Live Location",
+                f"CRITICAL HEALTH EMERGENCY\n\nPatient: {user.full_name or user.username}\nLive Location: {location_url}"
+            )
+            print("📧 [Escalation] Emergency location email sent")
+
+        alert.escalated = True
+        db.commit()
+        print(f"📈 [Escalation] Alert {alert_id} marked as escalated in DB")
+
+    except Exception as e:
+        print(f"💥 [Escalation] CRITICAL ERROR: {e}")
+    finally:
         db.close()
-        return
-
-    if alert.acknowledged:
-        print("✅ Alert acknowledged, stopping escalation")
-        db.close()
-        return
-
-    if alert.escalated:
-        db.close()
-        return
-
-    patient = db.query(models.Patient).get(alert.patient_id)
-    user = db.query(models.User).get(patient.user_id)
-
-    print("🚨 ESCALATING ALERT", alert_id)
-
-    # ===============================
-    # 📞 AUTO CALL FAMILY
-    # ===============================
-    call_family(
-        patient.get_contacts(),
-        user.full_name or user.username
-    )
-
-    # ===============================
-    # 📍 PREPARE LIVE LOCATION LINK
-    # ===============================
-    location_url = None
-    if patient.lat and patient.lng:
-        location_url = f"https://www.google.com/maps?q={patient.lat},{patient.lng}"
-
-    # ===============================
-    # 📧 SEND LOCATION EMAIL
-    # ===============================
-    if user.email and location_url:
-        send_email(
-            user.email,
-            "🚨 MediWatch Emergency – Patient Live Location",
-            f"""
-CRITICAL HEALTH EMERGENCY
-
-Patient: {user.full_name or user.username}
-Patient ID: {patient.id}
-
-Live Location:
-{location_url}
-
-Auto-call has been placed to emergency contacts.
-Please seek immediate medical assistance.
-"""
-        )
-        print("📧 Emergency location email sent")
-
-    alert.escalated = True
-    db.commit()
-    db.close()
 
 
 # ---------------- READINGS ----------------

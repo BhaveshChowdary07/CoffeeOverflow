@@ -1,9 +1,15 @@
 from twilio.rest import Client
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 FROM_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+
+print(f"DEBUG: Twilio SID loaded: {bool(ACCOUNT_SID)}")
+print(f"DEBUG: Twilio Auth loaded: {bool(AUTH_TOKEN)}")
+print(f"DEBUG: Twilio From: {FROM_NUMBER}")
 
 client = Client(ACCOUNT_SID, AUTH_TOKEN)
 
