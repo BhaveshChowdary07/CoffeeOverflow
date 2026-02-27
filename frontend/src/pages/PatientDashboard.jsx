@@ -25,7 +25,7 @@ export default function PatientDashboard() {
 
   // ---- load doctor notes for this patient ----
   useEffect(() => {
-    if (!patient) return
+    if (!patient?.id) return
 
     const token = localStorage.getItem('mw_token')
     if (!token) return
@@ -36,7 +36,7 @@ export default function PatientDashboard() {
       })
       .then(res => setNotes(res.data))
       .catch(() => setNotes([]))
-  }, [patient])
+  }, [patient?.id])
 
 
   // ---- load patient + contacts for logged-in user ----
@@ -88,23 +88,32 @@ export default function PatientDashboard() {
   // }, [patient]);
 
   useEffect(() => {
-    if (!patient) return
+    if (!patient?.id) return
 
-    navigator.geolocation.getCurrentPosition(pos => {
-      axios.post(
-        `http://localhost:8000/patients/${patient.id}/location`,
-        {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('mw_token')}`
-          }
-        }
-      )
-    })
-  }, [patient])
+    const updateLocation = () => {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const { latitude, longitude } = pos.coords
+        setPatient(prev => ({ ...prev, lat: latitude, lng: longitude }))
+
+        axios.post(
+          `http://localhost:8000/patients/${patient.id}/location`,
+          { lat: latitude, lng: longitude },
+          { headers: { Authorization: `Bearer ${localStorage.getItem('mw_token')}` } }
+        ).catch(err => console.error("Failed to update location", err))
+      }, err => console.error("GPS error", err), {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 30000
+      })
+    }
+
+    // Update once immediately
+    updateLocation()
+
+    // Set interval for every 3 minutes (180,000ms)
+    const interval = setInterval(updateLocation, 180000)
+    return () => clearInterval(interval)
+  }, [patient?.id])
 
 
 
