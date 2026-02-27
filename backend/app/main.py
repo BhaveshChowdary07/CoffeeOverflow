@@ -525,13 +525,14 @@ from jose import JWTError, jwt
 from dotenv import load_dotenv
 import io, pdfkit, pytz, asyncio
 
-from .db import SessionLocal, engine, Base
+from .db import SessionLocal, engine, Base, get_db
 from . import models, schemas, utils, ml_detector
 from .ws_manager import manager
 from .auth import (
     verify_password, get_password_hash,
     create_access_token, SECRET_KEY, ALGORITHM,
     create_reset_token, RESET_EXPIRE_MINUTES,
+    oauth2_scheme, get_current_user, get_user_by_username
 )
 from .utils_email import send_email
 from .utils_twilio import call_family
@@ -543,7 +544,9 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="MediWatch Remote Monitoring")
 
 from .hospitals import router as hospital_router
+from .agent import router as agent_router
 app.include_router(hospital_router)
+app.include_router(agent_router)
 
 
 # ---------------- OPTIONS FIX ----------------
@@ -561,7 +564,6 @@ app.add_middleware(
 )
 
 # ---------------- SECURITY ----------------
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 # ---------------- PDF CONFIG ----------------
 WKHTMLTOPDF_PATH = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
@@ -574,35 +576,6 @@ def ist_str(dt: datetime) -> str:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
     return dt.astimezone(IST).strftime("%d-%b-%Y %I:%M:%S %p IST")
-
-# ---------------- DB ----------------
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-# ---------------- AUTH HELPERS ----------------
-def get_user_by_username(db: Session, username: str):
-    return db.query(models.User).filter(models.User.username == username).first()
-
-async def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db),
-):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        if not username:
-            raise JWTError()
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-    user = get_user_by_username(db, username)
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-    return user
 
 # ---------------- AUTH ----------------
 @app.post("/auth/register", response_model=schemas.UserOut)
@@ -884,20 +857,6 @@ def ack(alert_id: int, db: Session = Depends(get_db), current_user: models.User 
     db.commit()
     return {"status": "acknowledged"}
 
-# ---------------- NOTES ----------------
-@app.post("/patients/{patient_id}/notes")
-def add_note(patient_id: int, payload: dict, db: Session = Depends(get_db),
-             current_user: models.User = Depends(get_current_user)):
-    if current_user.role != "doctor":
-        raise HTTPException(403)
-
-    db.add(models.DoctorNote(
-        patient_id=patient_id,
-        doctor_id=current_user.id,
-        note=payload.get("note", "")
-    ))
-    db.commit()
-    return {"status": "saved"}
 
 # ---------------- CONTACTS ----------------
 @app.put("/patients/{patient_id}/contacts")

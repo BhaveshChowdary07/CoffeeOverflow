@@ -24,12 +24,12 @@ import Signup from './pages/Signup'
 import DoctorDashboard from './pages/DoctorDashboard'
 import PatientDashboard from './pages/PatientDashboard'
 import PatientProfile from './pages/PatientProfile'
+import Chatbot from './components/Chatbot'
 
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-[#f3ede2]
-">
+      <div className="min-h-screen bg-[#f3ede2]">
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
@@ -37,6 +37,7 @@ export default function App() {
           <Route path="/patient" element={<PatientDashboard />} />
           <Route path="/profile" element={<PatientProfile />} />
         </Routes>
+        <Chatbot />
       </div>
     </BrowserRouter>
   )

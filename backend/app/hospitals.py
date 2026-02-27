@@ -5,4 +5,5 @@ router = APIRouter(prefix="/hospitals", tags=["Hospitals"])
 
 @router.get("/nearest")
 def nearest(lat: float, lng: float):
-    return find_nearest_hospital(lat, lng)
+    from .hospital_finder import find_nearest_hospitals
+    return find_nearest_hospitals(lat, lng, radius_km=30)

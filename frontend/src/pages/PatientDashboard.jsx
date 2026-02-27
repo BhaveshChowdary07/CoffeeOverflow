@@ -3,28 +3,40 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import LiveChart from '../components/LiveChart'
 import NavBar from '../components/NavBar'
+import NearbyHospitals from '../components/NearbyHospitals'
 
 export default function PatientDashboard() {
   const [readings, setReadings] = useState([])
   const [patient, setPatient] = useState(null)
   const [contacts, setContacts] = useState(['', '', ''])
   const [notes, setNotes] = useState([])
+  const [appointments, setAppointments] = useState([])
 
-
-  // ---- load doctor notes for this patient ----
-useEffect(() => {
-  if (!patient) return
-
-  const token = localStorage.getItem('mw_token')
-  if (!token) return
-
-  axios
-    .get(`http://localhost:8000/patients/${patient.id}/notes`, {
+  // ---- load appointments ----
+  useEffect(() => {
+    const token = localStorage.getItem('mw_token')
+    if (!token) return
+    axios.get('http://localhost:8000/agent/appointments/me', {
       headers: { Authorization: `Bearer ${token}` }
     })
-    .then(res => setNotes(res.data))
-    .catch(() => setNotes([]))
-}, [patient])
+      .then(res => setAppointments(res.data))
+      .catch(() => setAppointments([]))
+  }, [])
+
+  // ---- load doctor notes for this patient ----
+  useEffect(() => {
+    if (!patient) return
+
+    const token = localStorage.getItem('mw_token')
+    if (!token) return
+
+    axios
+      .get(`http://localhost:8000/patients/${patient.id}/notes`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => setNotes(res.data))
+      .catch(() => setNotes([]))
+  }, [patient])
 
 
   // ---- load patient + contacts for logged-in user ----
@@ -49,50 +61,50 @@ useEffect(() => {
       })
   }, [])
 
-//   useEffect(() => {
-//   if (!patient) return;
+  //   useEffect(() => {
+  //   if (!patient) return;
 
-//   const watchId = navigator.geolocation.watchPosition(
-//     pos => {
-//       axios.post(
-//         `http://localhost:8000/patients/${patient.id}/location`,
-//         {
-//           lat: pos.coords.latitude,
-//           lng: pos.coords.longitude
-//         },
-//         {
-//           headers: {
-//             Authorization: `Bearer ${localStorage.getItem('mw_token')}`
-//           }
-//         }
-//       );
-//     },
-//     err => console.error("GPS error", err),
-//     { enableHighAccuracy: true }
-//   );
+  //   const watchId = navigator.geolocation.watchPosition(
+  //     pos => {
+  //       axios.post(
+  //         `http://localhost:8000/patients/${patient.id}/location`,
+  //         {
+  //           lat: pos.coords.latitude,
+  //           lng: pos.coords.longitude
+  //         },
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${localStorage.getItem('mw_token')}`
+  //           }
+  //         }
+  //       );
+  //     },
+  //     err => console.error("GPS error", err),
+  //     { enableHighAccuracy: true }
+  //   );
 
-//   return () => navigator.geolocation.clearWatch(watchId);
+  //   return () => navigator.geolocation.clearWatch(watchId);
 
-// }, [patient]);
+  // }, [patient]);
 
   useEffect(() => {
-  if (!patient) return
+    if (!patient) return
 
-  navigator.geolocation.getCurrentPosition(pos => {
-    axios.post(
-      `http://localhost:8000/patients/${patient.id}/location`,
-      {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('mw_token')}`
+    navigator.geolocation.getCurrentPosition(pos => {
+      axios.post(
+        `http://localhost:8000/patients/${patient.id}/location`,
+        {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('mw_token')}`
+          }
         }
-      }
-    )
-  })
-}, [patient])
+      )
+    })
+  }, [patient])
 
 
 
@@ -169,7 +181,7 @@ useEffect(() => {
     } catch (e) {
       alert(
         'PDF download failed: ' +
-          (e.response?.data?.detail || e.message || 'Unknown error')
+        (e.response?.data?.detail || e.message || 'Unknown error')
       )
     }
   }
@@ -245,7 +257,7 @@ useEffect(() => {
                   setContacts(next)
                 }}
                 placeholder="+91..."
-              className="flex-1 px-3 py-1.5 text-sm rounded-xl bg-white border border-slate-300"
+                className="flex-1 px-3 py-1.5 text-sm rounded-xl bg-white border border-slate-300"
 
               />
               {contacts[idx].trim() !== '' && (
@@ -270,32 +282,59 @@ useEffect(() => {
           </div>
         </section>
 
+        {/* Upcoming Appointments */}
+        <section className="medi-card">
+          <div className="medi-title text-sm mb-2">Upcoming Appointments</div>
+          {appointments.length === 0 && (
+            <div className="text-xs text-slate-500">No upcoming appointments.</div>
+          )}
+          <div className="space-y-2">
+            {appointments.map(a => (
+              <div key={a.id} className="bg-white border border-slate-200 rounded-xl p-3 text-xs flex justify-between items-center shadow-sm">
+                <div>
+                  <div className="font-bold text-slate-800 capitalize">{a.specialty} consultation</div>
+                  <div className="text-[10px] text-slate-500">{new Date(a.appointment_time).toLocaleString()}</div>
+                  {a.user_input && <div className="text-[10px] text-slate-400 mt-1 italic">"{a.user_input}"</div>}
+                </div>
+                <div className="text-right">
+                  <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${a.status === 'shifted' ? 'bg-orange-100 text-orange-700' : 'bg-emerald-100 text-emerald-700'
+                    }`}>
+                    {a.status}
+                  </span>
+                  {a.status === 'shifted' && <div className="text-[8px] text-orange-600 mt-0.5 font-medium">Reassigned due to emergency</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Doctor notes */}
-<section className="medi-card">
-  <div className="medi-title text-sm mb-2">Doctor notes</div>
+        <section className="medi-card">
+          <div className="medi-title text-sm mb-2">Doctor notes</div>
 
-  {notes.length === 0 && (
-    <div className="text-xs text-black">
-      No notes have been added by your doctor yet.
-    </div>
-  )}
+          {notes.length === 0 && (
+            <div className="text-xs text-black">
+              No notes have been added by your doctor yet.
+            </div>
+          )}
 
-  <div className="space-y-2">
-    {notes.map(n => (
-      <div
-        key={n.id}
-        className="bg-white
-         border border-black-200 rounded-xl p-3 text-xs"
-      >
-        <div className="text-black-100">{n.note}</div>
-        <div className="text-[10px] text-black-400 mt-1">
-          {new Date(n.created_at).toLocaleString()}
-        </div>
-      </div>
-    ))}
-  </div>
-</section>
+          <div className="space-y-2">
+            {notes.map(n => (
+              <div
+                key={n.id}
+                className="bg-white border border-black-200 rounded-xl p-3 text-xs"
+              >
+                <div className="text-black-100">{n.note}</div>
+                <div className="text-[10px] text-black-400 mt-1">
+                  {new Date(n.created_at).toLocaleString()}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
 
+        {/* Nearby Hospitals */}
+        <NearbyHospitals lat={patient?.lat} lng={patient?.lng} />
       </main>
     </div>
   )
