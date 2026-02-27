@@ -12,7 +12,7 @@
 //   const [loading, setLoading] = useState(false)
 
 
-  
+
 
 //   const submit = async (e) => {
 //     e.preventDefault()
@@ -44,7 +44,7 @@
 
 //   return (
 //     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-black">
-      
+
 //       <div className="w-full max-w-md p-8 rounded-2xl shadow-2xl bg-slate-900/80 backdrop-blur border border-slate-700
 //                       transform transition hover:scale-[1.02]">
 
@@ -154,11 +154,12 @@ export default function Login() {
       fd.append('password', p)
 
       const res = await axios.post('http://localhost:8000/auth/login', fd)
-      const token = res.data.access_token
-      localStorage.setItem('mw_token', token)
+      const { access_token, refresh_token } = res.data
+      localStorage.setItem('mw_token', access_token)
+      localStorage.setItem('mw_refresh_token', refresh_token)
 
       const who = await axios.get('http://localhost:8000/users/me', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${access_token}` }
       })
 
       if (who.data.role === 'doctor') nav('/doctor')
@@ -241,15 +242,15 @@ export default function Login() {
         </form>
 
         {/* Footer */}
-       <div className="mt-6 text-center text-sm text-slate-600">
-  New user?{' '}
-  <button
-    onClick={() => nav('/signup')}
-    className="font-semibold text-white-700 hover:text-white-800 hover:underline"
-  >
-    Create Account
-  </button>
-</div>
+        <div className="mt-6 text-center text-sm text-slate-600">
+          New user?{' '}
+          <button
+            onClick={() => nav('/signup')}
+            className="font-semibold text-white-700 hover:text-white-800 hover:underline"
+          >
+            Create Account
+          </button>
+        </div>
 
 
       </div>
