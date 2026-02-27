@@ -1,4 +1,6 @@
 
+
+
 // import React, { useState } from 'react'
 // import axios from 'axios'
 // import { useNavigate } from 'react-router-dom'
@@ -130,9 +132,10 @@
 // }
 
 
-
+import { BeamsBackground } from "../components/BeamBackground";
 import React, { useState } from 'react'
 import axios from 'axios'
+
 import { useNavigate } from 'react-router-dom'
 import { Loader2, Stethoscope } from 'lucide-react'
 
@@ -171,8 +174,9 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f7f5ef]">
+  <BeamsBackground intensity="strong">
 
+    <div className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-md p-8 rounded-2xl bg-white border border-slate-200 shadow-xl">
 
         {/* Header */}
@@ -187,17 +191,13 @@ export default function Login() {
           Secure Remote Patient Monitoring System
         </p>
 
-        {/* Error */}
         {err && (
           <div className="mb-4 p-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded">
             {err}
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={submit} className="space-y-5">
-
-          {/* Username */}
           <div>
             <label className="block text-xs text-slate-500 mb-1">
               Username
@@ -210,7 +210,6 @@ export default function Login() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-xs text-slate-500 mb-1">
               Password
@@ -224,10 +223,9 @@ export default function Login() {
             />
           </div>
 
-          {/* Button */}
           <button
             disabled={loading}
-            className="w-full py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-semibold flex items-center justify-center gap-2"
+            className="w-full py-2 rounded bg-emerald-500 hover:bg-emerald-600 text-white font-semibold flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -240,19 +238,19 @@ export default function Login() {
           </button>
         </form>
 
-        {/* Footer */}
-       <div className="mt-6 text-center text-sm text-slate-600">
-  New user?{' '}
-  <button
-    onClick={() => nav('/signup')}
-    className="font-semibold text-white-700 hover:text-white-800 hover:underline"
-  >
-    Create Account
-  </button>
-</div>
-
+        <div className="mt-6 text-center text-sm text-slate-600">
+          New user?{' '}
+          <button
+            onClick={() => nav('/signup')}
+            className="font-semibold text-black hover:underline"
+          >
+            Create Account
+          </button>
+        </div>
 
       </div>
     </div>
-  )
+
+  </BeamsBackground>
+)
 }
