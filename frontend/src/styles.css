@@ -1,0 +1,251 @@
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans bg-mediblueSoft text-slate-100;
+  }
+}
+
+@layer components {
+  .medi-card {
+    @apply rounded-2xl bg-slate-900/70 border border-slate-700/70 shadow-soft p-4;
+  }
+
+  .medi-badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-200;
+  }
+
+  .medi-title {
+    @apply text-lg font-semibold text-slate-100;
+  }
+
+  .medi-subtitle {
+    @apply text-xs text-slate-400;
+  }
+}
+
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 16px;
+}
+
+.side-panel {
+  background: #111;
+  padding: 12px;
+  border-radius: 8px;
+  color: #fff;
+}
+
+.hospital-panel h3 {
+  margin-bottom: 10px;
+}
+
+.hospital-panel ul {
+  list-style: none;
+  padding: 0;
+}
+
+.hospital-panel li {
+  margin-bottom: 12px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 8px;
+}
+
+.hospital-panel a {
+  color: #4da3ff;
+  font-size: 13px;
+} */
+
+
+
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans bg-mediblueSoft text-slate-100;
+  }
+}
+
+@layer components {
+  .medi-card {
+    @apply rounded-2xl bg-slate-900/70 border border-slate-700/70 shadow-soft p-4;
+  }
+
+  .medi-badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-200;
+  }
+
+  .medi-title {
+    @apply text-lg font-semibold text-slate-100;
+  }
+
+  .medi-subtitle {
+    @apply text-xs text-slate-400;
+  }
+}
+
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 16px;
+}
+
+.side-panel {
+  background: #111;
+  padding: 12px;
+  border-radius: 8px;
+  color: #fff;
+}
+
+.hospital-panel h3 {
+  margin-bottom: 10px;
+}
+
+.hospital-panel ul {
+  list-style: none;
+  padding: 0;
+}
+
+.hospital-panel li {
+  margin-bottom: 12px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 8px;
+}
+
+.hospital-panel a {
+  color: #4da3ff;
+  font-size: 13px;
+} */
+
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===============================
+   GLOBAL
+   =============================== */
+/* @layer base {
+  body {
+    @apply bg-[#eef2f7] text-slate-800 font-sans;
+  }
+} */
+@layer base {
+  body {
+    @apply bg-[#f3ede2] text-slate-800 font-sans antialiased;
+  }
+}
+
+
+
+/* ===============================
+   CARDS
+   =============================== */
+@layer components {
+  .medi-card {
+    @apply bg-white border border-[#dbe3ee] rounded-xl p-4;
+  }
+
+  .medi-title {
+    @apply text-sm font-semibold text-slate-900;
+  }
+
+  .medi-subtitle {
+    @apply text-xs text-slate-500;
+  }
+
+  .medi-badge {
+    @apply text-[10px] px-2 py-0.5 rounded-full border border-slate-300 text-slate-600;
+  }
+}
+
+/* ===============================
+   BUTTONS
+   =============================== */
+button {
+  @apply bg-teal-700 text-white border border-teal-700 text-xs px-3 py-1 rounded-lg;
+}
+
+button:hover {
+  @apply bg-teal-800;
+}
+
+/* ===============================
+   🔴 EMERGENCY
+   =============================== */
+.emergency-btn {
+  @apply bg-red-600 border border-red-600 text-white;
+}
+
+.emergency-btn:hover {
+  @apply bg-red-700;
+}
+
+/* ===============================
+   INPUTS
+   =============================== */
+input,
+textarea {
+  @apply bg-white border border-slate-300 text-slate-900 rounded-lg text-xs p-2;
+}
+
+/* ===============================
+   SIDEBAR (FIXED – NO DARK)
+   =============================== */
+aside {
+  @apply bg-[#f8fafc] border border-[#dbe3ee] rounded-xl;
+}
+
+aside button {
+  @apply w-full text-left border border-[#dbe3ee] rounded-lg p-2 text-xs bg-white text-slate-700;
+}
+
+aside button:hover {
+  @apply bg-slate-100;
+}
+
+aside button.active {
+  @apply bg-teal-700 text-white border-teal-700;
+}
+
+/* ===============================
+   ALERTS
+   =============================== */
+.mono-alert {
+  @apply bg-white border border-slate-300 rounded-lg p-2 text-xs;
+}
+
+.mono-alert.critical {
+  @apply border-2 border-red-600;
+}
+
+.mono-alert.critical .alert-title {
+  @apply text-red-600 font-semibold;
+}
+
+/* ===============================
+   MAP
+   =============================== */
+iframe {
+  @apply border border-[#dbe3ee] rounded-xl;
+}
+
+
+@layer base {
+  body {
+    @apply font-semibold;
+  }
+}
+
+
+* {
+  font-weight: 600;
+}
