@@ -53,76 +53,76 @@ export default function Login() {
     <BeamsBackground intensity="medium">
       <div className="min-h-screen flex items-center justify-center p-4">
 
-        <div className="w-full max-w-md bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl p-8 shadow-2xl transition hover:scale-[1.02]">
+        <div className="w-full max-w-md rounded-2xl p-8 shadow-2xl transition-transform hover:scale-[1.015]"
+          style={{
+            background: 'rgba(15, 23, 42, 0.72)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.10)',
+          }}>
 
           {/* Header */}
-          <div className="flex items-center justify-center mb-6 gap-2 text-emerald-600">
+          <div className="flex items-center justify-center mb-6 gap-2 text-emerald-400">
             <Stethoscope size={28} />
-            <h2 className="text-2xl font-bold">
-              MediWatch Login
-            </h2>
+            <h2 className="text-2xl font-bold text-white">MediWatch</h2>
           </div>
 
-          <p className="text-center text-slate-500 text-sm mb-6">
-            Secure Remote Patient Monitoring System
+          <p className="text-center text-slate-400 text-sm mb-6">
+            Secure Remote Patient Monitoring
           </p>
 
           {/* Error */}
           {err && (
-            <div className="mb-4 p-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+            <div className="mb-4 p-3 text-sm text-red-300 bg-red-900/30 border border-red-700/40 rounded-lg">
               {err}
             </div>
           )}
 
           {/* Form */}
-          <form onSubmit={submit} className="space-y-5">
+          <form onSubmit={submit} className="space-y-4">
 
             <div>
-              <label className="block text-xs text-slate-500 mb-1">
-                Username
-              </label>
+              <label className="block text-xs text-slate-400 mb-1">Username</label>
               <input
                 value={u}
                 onChange={(e) => setU(e.target.value)}
                 required
-                className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-emerald-500 outline-none transition"
+                autoComplete="username"
+                className="w-full px-3 py-2.5 rounded-lg bg-white/10 border border-white/10 text-white placeholder-slate-500 focus:border-emerald-500 focus:bg-white/15 outline-none transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-slate-500 mb-1">
-                Password
-              </label>
+              <label className="block text-xs text-slate-400 mb-1">Password</label>
               <input
                 type="password"
                 value={p}
                 onChange={(e) => setP(e.target.value)}
                 required
-                className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-emerald-500 outline-none transition"
+                autoComplete="current-password"
+                className="w-full px-3 py-2.5 rounded-lg bg-white/10 border border-white/10 text-white placeholder-slate-500 focus:border-emerald-500 focus:bg-white/15 outline-none transition"
               />
             </div>
 
             <button
               disabled={loading}
-              className="w-full py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-semibold flex items-center justify-center gap-2 transition"
+              className="w-full py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-white font-semibold flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-900/40 mt-2"
             >
               {loading ? (
                 <>
                   <Loader2 className="animate-spin" size={18} />
                   Logging in...
                 </>
-              ) : (
-                "Login"
-              )}
+              ) : 'Login'}
             </button>
           </form>
 
           {/* Footer */}
-          <div className="mt-6 text-center text-sm text-slate-600">
-            New user?{" "}
+          <div className="mt-6 text-center text-sm text-slate-400">
+            New user?{' '}
             <button
-              onClick={() => nav("/signup")}
-              className="font-semibold text-emerald-600 hover:underline"
+              onClick={() => nav('/signup')}
+              className="font-semibold text-emerald-400 hover:text-emerald-300 hover:underline transition"
             >
               Create Account
             </button>
