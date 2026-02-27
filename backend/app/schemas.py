@@ -214,3 +214,46 @@ class PatientUpdateContacts(BaseModel):
 # patient info + nested user {username, full_name, email, ...}
 class PatientWithUserOut(PatientOut):
     user: UserOut
+
+# ---------- Hospital / Booking ----------
+
+class HospitalDoctorOut(BaseModel):
+    id: int
+    name: str
+    specialty: str
+    is_available: bool
+    in_emergency: bool
+
+    class Config:
+        orm_mode = True
+
+class HospitalOut(BaseModel):
+    id: int
+    name: str
+    address: Optional[str]
+    city: Optional[str]
+    lat: Optional[float]
+    lng: Optional[float]
+    is_multi_specialty: bool
+
+    class Config:
+        orm_mode = True
+
+class AppointmentCreate(BaseModel):
+    hospital_id: int
+    specialty: str
+    appointment_time: datetime.datetime
+    user_input: Optional[str] = None
+
+class AppointmentOut(BaseModel):
+    id: int
+    patient_id: int
+    hospital_id: int
+    doctor_id: Optional[int]
+    specialty: str
+    appointment_time: datetime.datetime
+    status: str
+    user_input: Optional[str]
+
+    class Config:
+        orm_mode = True

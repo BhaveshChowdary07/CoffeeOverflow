@@ -143,3 +143,52 @@ class AuditLog(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="audit_logs")
+
+
+# ===================== HOSPITAL =====================
+class Hospital(Base):
+    __tablename__ = "hospitals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    address = Column(String)
+    city = Column(String)
+    lat = Column(Float)
+    lng = Column(Float)
+    is_multi_specialty = Column(Boolean, default=True)
+
+    doctors = relationship("HospitalDoctor", back_populates="hospital")
+    appointments = relationship("Appointment", back_populates="hospital")
+
+
+# ===================== HOSPITAL DOCTOR =====================
+class HospitalDoctor(Base):
+    __tablename__ = "hospital_doctors"
+
+    id = Column(Integer, primary_key=True, index=True)
+    hospital_id = Column(Integer, ForeignKey("hospitals.id"))
+    name = Column(String, nullable=False)
+    specialty = Column(String)  # oncology, cardiology, orthopedics, etc.
+    is_available = Column(Boolean, default=True)
+    in_emergency = Column(Boolean, default=False)
+
+    hospital = relationship("Hospital", back_populates="doctors")
+    appointments = relationship("Appointment", back_populates="doctor")
+
+
+# ===================== APPOINTMENT =====================
+class Appointment(Base):
+    __tablename__ = "appointments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    patient_id = Column(Integer, ForeignKey("patients.id"))
+    hospital_id = Column(Integer, ForeignKey("hospitals.id"))
+    doctor_id = Column(Integer, ForeignKey("hospital_doctors.id"), nullable=True)
+    specialty = Column(String)
+    appointment_time = Column(DateTime)
+    status = Column(String, default="scheduled")  # scheduled, completed, cancelled, shifted
+    user_input = Column(Text)
+
+    patient = relationship("Patient")
+    hospital = relationship("Hospital", back_populates="appointments")
+    doctor = relationship("HospitalDoctor", back_populates="appointments")
