@@ -18,6 +18,7 @@ export default function DoctorDashboard() {
   const [alerts, setAlerts] = useState([])
   const [notes, setNotes] = useState([])
   const [newNote, setNewNote] = useState('')
+  const [doctorAppointments, setDoctorAppointments] = useState([])
 
 
   // Load patients for this doctor
@@ -57,6 +58,17 @@ export default function DoctorDashboard() {
       .then(res => setNotes(res.data))
       .catch(() => setNotes([]))
   }, [selected?.id, token])
+
+  // ---------- Load appointments for all assigned patients ----------
+  useEffect(() => {
+    if (!token) return
+    axios
+      .get('http://localhost:8000/agent/appointments/doctor', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(res => setDoctorAppointments(res.data))
+      .catch(() => setDoctorAppointments([]))
+  }, [token])
 
   // ---------- Save doctor note ----------
   const saveNote = async () => {
@@ -593,6 +605,44 @@ export default function DoctorDashboard() {
                   ))}
                 </div>
 
+              </div>
+            )}
+          </section>
+
+          {/* ── APPOINTMENTS PANEL ──────────────────────────────── */}
+          <section className="medi-card">
+            <div className="medi-title text-sm mb-3 flex items-center justify-between">
+              <span className="flex items-center gap-2">📅 Patient Appointments</span>
+              <span className="text-[10px] text-slate-400 font-normal">
+                {doctorAppointments.length} total
+              </span>
+            </div>
+
+            {doctorAppointments.length === 0 ? (
+              <div className="text-xs text-slate-400 border border-dashed border-slate-200 rounded-xl p-6 text-center">
+                No appointments booked yet for your patients.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {doctorAppointments.map(a => (
+                  <div key={a.id} className="bg-white border border-slate-200 rounded-xl p-3 text-xs shadow-sm hover:border-slate-300 transition">
+                    <div className="flex justify-between items-start mb-1">
+                      <div className="font-bold text-slate-800">{a.patient_name}</div>
+                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${a.status === 'shifted' ? 'bg-orange-100 text-orange-700' :
+                          a.status === 'scheduled' ? 'bg-emerald-100 text-emerald-700' :
+                            'bg-slate-100 text-slate-500'
+                        }`}>{a.status}</span>
+                    </div>
+                    <div className="text-slate-500 mb-0.5 capitalize">🩺 {a.specialty} · 🏥 {a.hospital}</div>
+                    <div className="text-slate-500">📅 {new Date(a.appointment_time).toLocaleString()}</div>
+                    {a.user_input && (
+                      <div className="mt-1 text-slate-400 italic border-t border-slate-100 pt-1">"{a.user_input}"</div>
+                    )}
+                    {a.status === 'shifted' && (
+                      <div className="text-[9px] text-orange-600 mt-0.5 font-semibold">⚠️ Doctor reassigned due to emergency</div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </section>

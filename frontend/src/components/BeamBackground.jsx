@@ -3,17 +3,19 @@ import { useEffect, useRef } from "react";
 export function BeamsBackground({ children, intensity = "strong" }) {
   const canvasRef = useRef(null);
   const beamsRef = useRef([]);
-  const animationFrameRef = useRef(0);
-  const MINIMUM_BEAMS = 20;
+  const animationFrameRef = useRef(null);
+
+  const MINIMUM_BEAMS = 30;
 
   const opacityMap = {
-    subtle: 0.7,
-    medium: 0.85,
+    subtle: 0.6,
+    medium: 0.8,
     strong: 1,
   };
 
   function createBeam(width, height) {
     const angle = -35 + Math.random() * 10;
+
     return {
       x: Math.random() * width * 1.5 - width * 0.25,
       y: Math.random() * height * 1.5 - height * 0.25,
@@ -22,7 +24,7 @@ export function BeamsBackground({ children, intensity = "strong" }) {
       angle,
       speed: 0.6 + Math.random() * 1.2,
       opacity: 0.12 + Math.random() * 0.16,
-      hue: 190 + Math.random() * 70,
+      hue: 170 + Math.random() * 30, // slightly medical green range
       pulse: Math.random() * Math.PI * 2,
       pulseSpeed: 0.02 + Math.random() * 0.03,
     };
@@ -33,18 +35,26 @@ export function BeamsBackground({ children, intensity = "strong" }) {
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
+    let running = true;
 
     const updateCanvasSize = () => {
       const dpr = window.devicePixelRatio || 1;
+
+      // 🔥 Reset transform before resizing (CRITICAL FIX)
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+
       canvas.width = window.innerWidth * dpr;
       canvas.height = window.innerHeight * dpr;
+
       canvas.style.width = `${window.innerWidth}px`;
       canvas.style.height = `${window.innerHeight}px`;
+
       ctx.scale(dpr, dpr);
 
-      const totalBeams = MINIMUM_BEAMS * 1.5;
-      beamsRef.current = Array.from({ length: totalBeams }, () =>
-        createBeam(canvas.width, canvas.height)
+      // Recreate beams
+      beamsRef.current = Array.from(
+        { length: MINIMUM_BEAMS },
+        () => createBeam(canvas.width, canvas.height)
       );
     };
 
@@ -52,12 +62,12 @@ export function BeamsBackground({ children, intensity = "strong" }) {
     window.addEventListener("resize", updateCanvasSize);
 
     function animate() {
+      if (!running) return;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.filter = "blur(35px)";
 
-      const totalBeams = beamsRef.current.length;
-
-      beamsRef.current.forEach((beam, index) => {
+      beamsRef.current.forEach((beam) => {
         beam.y -= beam.speed;
         beam.pulse += beam.pulseSpeed;
 
@@ -72,7 +82,10 @@ export function BeamsBackground({ children, intensity = "strong" }) {
 
         const gradient = ctx.createLinearGradient(0, 0, 0, beam.length);
         gradient.addColorStop(0, `hsla(${beam.hue},85%,75%,0)`);
-        gradient.addColorStop(0.5, `hsla(${beam.hue},85%,55%,${pulsingOpacity})`);
+        gradient.addColorStop(
+          0.5,
+          `hsla(${beam.hue},85%,55%,${pulsingOpacity})`
+        );
         gradient.addColorStop(1, `hsla(${beam.hue},85%,75%,0)`);
 
         ctx.save();
@@ -89,13 +102,20 @@ export function BeamsBackground({ children, intensity = "strong" }) {
     animate();
 
     return () => {
+      running = false;
       window.removeEventListener("resize", updateCanvasSize);
-      cancelAnimationFrame(animationFrameRef.current);
+
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     };
   }, [intensity]);
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-blue-50">
+    <div className="relative min-h-screen w-full overflow-hidden bg-slate-50">
       <canvas ref={canvasRef} className="absolute inset-0" />
       <div className="relative z-10">{children}</div>
     </div>

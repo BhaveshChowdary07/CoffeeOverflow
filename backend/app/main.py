@@ -530,7 +530,8 @@ from . import models, schemas, utils, ml_detector
 from .ws_manager import manager
 from .auth import (
     verify_password, get_password_hash,
-    create_access_token, SECRET_KEY, ALGORITHM,
+    create_access_token, create_token_pair, decode_refresh_token,
+    SECRET_KEY, ALGORITHM,
     create_reset_token, RESET_EXPIRE_MINUTES,
     oauth2_scheme, get_current_user, get_user_by_username
 )
@@ -605,13 +606,25 @@ def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get
     user = get_user_by_username(db, form.username)
     if not user or not verify_password(form.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+    return create_token_pair(user)
 
-    token = create_access_token({
-        "sub": user.username,
-        "role": user.role,
-        "user_id": user.id
-    })
-    return {"access_token": token, "token_type": "bearer"}
+
+@app.post("/auth/refresh", response_model=schemas.Token)
+def refresh_tokens(payload: dict, db: Session = Depends(get_db)):
+    """
+    Exchange a valid refresh token for a new access + refresh token pair.
+    Body: { "refresh_token": "<token>" }
+    """
+    raw = payload.get("refresh_token")
+    if not raw:
+        raise HTTPException(status_code=422, detail="refresh_token is required")
+
+    data = decode_refresh_token(raw)  # raises 401 if invalid/expired
+    user = get_user_by_username(db, data.get("sub"))
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    return create_token_pair(user)
+
 
 @app.get("/users/me", response_model=schemas.UserOut)
 def me(current_user: models.User = Depends(get_current_user)):
